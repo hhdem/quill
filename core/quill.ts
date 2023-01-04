@@ -610,7 +610,16 @@ class Quill {
   }
 
   scrollIntoView() {
-    this.selection.scrollIntoView(this.scrollingContainer);
+    const range = this.selection.lastRange;
+    if (range == null) return;
+    const bounds = this.getBounds(range.index, range.length);
+    if (bounds == null) return;
+    const scrollBounds = this.scrollingContainer.getBoundingClientRect();
+    if (bounds.top < scrollBounds.top) {
+      this.scrollingContainer.scrollTop -= scrollBounds.top - bounds.top;
+    } else if (bounds.bottom > scrollBounds.bottom) {
+      this.scrollingContainer.scrollTop += bounds.bottom - scrollBounds.bottom;
+    }
   }
 
   setContents(
@@ -650,7 +659,7 @@ class Quill {
       [index, length, , source] = overload(index, length, source);
       this.selection.setRange(new Range(Math.max(0, index), length), source);
       if (source !== Emitter.sources.SILENT) {
-        this.selection.scrollIntoView(this.scrollingContainer);
+        this.scrollIntoView();
       }
     }
   }
